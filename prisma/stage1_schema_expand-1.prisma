@@ -1,0 +1,103 @@
+// =============================================================================
+// ZESTRY. STAGE 1 (v2): Accounts, businesses, onboarding, memberships
+// EXPAND phase: additive or loosening changes only.
+// =============================================================================
+// What this supports:
+//   * Registration: a personal account (first name, last name, other names,
+//     phone required, email optional).
+//   * Business Hub: list every business the signed-in user belongs to, with
+//     their role, and resume any business that is still being set up.
+//   * Business onboarding: business created when onboarding starts, progress
+//     saved, a location (Site) always created, vertical chosen as business type.
+//   * Offline later: stable internal IDs, memberships and role assignments with
+//     business/site scope, and an identity link that does not depend on Clerk.
+//
+// Release plan (expand and contract):
+//   1. EXPAND: apply this schema + the backfill SQL. The currently running app
+//      keeps working because nothing it uses is dropped or renamed.
+//   2. NEW APP: deploy the new app. It reads identity from the new tables and,
+//      for rollback safety only, also keeps the legacy User columns populated
+//      where they can represent the data (one business per user, role in
+//      OWNER / MANAGER / CASHIER). Re-run the backfill right before cutover.
+//   3. CONTRACT: after a soak period, stop writing the legacy columns and apply
+//      the contract migration (shown at the bottom).
+//
+// Rollback caveat: the legacy columns can describe only ONE business per user
+// and only three roles. Once any user belongs to two businesses, or a
+// restaurant role (chef, waiter) exists, treat the new app as a one-way door.
+//
+// How to apply: replace your existing `Business` and `User` models with the
+// versions below and add everything else. Everything marked NEW is new,
+// everything marked CHANGED is additive or loosening, and LEGACY marks columns
+// that the contract release removes.
+// =============================================================================
+
+// --- NEW enums ---------------------------------------------------------------
+
+// Each business has exactly one vertical (never both). Chosen in onboarding
+// as the "business type". Add a value (for example HOTEL) only when a vertical
+// is actually supported.
+
+// --- CHANGED: Business -------------------------------------------------------
+
+// --- CHANGED: User (the person's Zestry account) ----------------------------
+// The account represents the individual, not a business. One account can own
+// one business and manage another.
+
+// --- NEW: Site ---------------------------------------------------------------
+// A location (outlet or branch) of a business. Every business gets at least
+// one, created during onboarding step 2 (for example "Main Branch"), even if it
+// has a single outlet. Devices will bind to exactly one site later. The label
+// shown to users ("Location", "Branch", "Store") is a per-vertical choice.
+
+// --- NEW: ExternalIdentity ---------------------------------------------------
+// Link from a user to an identity-provider account. Keeps the app independent
+// of Clerk: the rest of the system uses User.id. Staff who never sign in online
+// (offline PIN users, later) have no row here.
+
+// --- NEW: Membership ---------------------------------------------------------
+// A person's relationship to ONE business. This is what the Business Hub lists.
+// Disabling a membership ends the person's authority everywhere in that
+// business. Business and its first (owner) membership must be created in one
+// database transaction so a business never exists without an owner.
+
+// --- NEW: RoleAssignment -----------------------------------------------------
+// A role at business scope (siteId null) or at one site. roleKey is validated
+// against role definitions kept in code, not a database enum, so adding a role
+// (for example chef or waiter) needs no migration. businessId is repeated so
+// every tenant-owned row carries it.
+//
+// Known limitation: Prisma cannot express "unique when siteId is null", so the
+// app must prevent duplicate business-wide assignments.
+
+// =============================================================================
+// CONTRACT RELEASE: do NOT apply until the new app has been live and verified,
+// and the app no longer writes the legacy columns.
+// =============================================================================
+// User becomes:
+//
+// model User {
+//   id                 String             @id @default(cuid())
+//   firstName          String
+//   lastName           String?
+//   otherNames         String?
+//   phone              String?            @unique
+//   email              String?            @unique
+//   createdAt          DateTime           @default(now())
+//   updatedAt          DateTime           @updatedAt
+//
+//   salesAsCashier     Sale[]             @relation("SaleCashier")
+//   stockMovements     StockMovement[]    @relation("StockMovementCreatedBy")
+//   expensesRecorded   Expense[]          @relation("ExpenseCreatedBy")
+//   externalIdentities ExternalIdentity[]
+//   memberships        Membership[]
+//
+//   @@map("users")
+// }
+//
+// Business: remove `users User[]`, remove `businessType` (after reviewing it),
+// and remove the defaults on `vertical` and `status`.
+//
+// Generate it with `prisma migrate dev --create-only`, review the SQL, take a
+// backup, then apply. See Section C of stage1_backfill_and_verify.sql.
+// =============================================================================

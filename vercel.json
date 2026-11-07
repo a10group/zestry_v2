@@ -1,0 +1,7 @@
+{
+  "crons": [{
+    "path": "/api/cron/onboarding-cleanup",
+    "schedule": "0 3 * * *"
+  }
+  ]
+}
