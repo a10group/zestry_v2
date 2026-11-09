@@ -2,8 +2,9 @@ import { requireArea } from "@/server/auth/guards";
 import { primaryRoleLabel } from "@/modules/authorization/roles";
 import Link from "next/link";
 import { getReadiness } from "@/modules/businesses/readiness";
+import { Suspense } from "react";
 
-export default async function PosHome({
+async function PosHomeContent({
   params,
 }: {
   params: Promise<{ businessId: string }>;
@@ -28,5 +29,21 @@ export default async function PosHome({
         Switch business
       </Link>
     </main>
+  );
+}
+
+export default function PosHome({
+  params,
+}: {
+  params: Promise<{ businessId: string }>;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-sm text-neutral-500">Loading checkout...</div>
+      }
+    >
+      <PosHomeContent params={params} />
+    </Suspense>
   );
 }

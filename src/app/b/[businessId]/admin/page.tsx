@@ -2,8 +2,9 @@ import { requireArea } from "@/server/auth/guards";
 import { primaryRoleLabel } from "@/modules/authorization/roles";
 import Link from "next/link";
 import { getReadiness } from "@/modules/businesses/readiness";
+import { Suspense } from "react";
 
-export default async function AdminHome({
+async function AdminHomeContent({
   params,
 }: {
   params: Promise<{ businessId: string }>;
@@ -25,7 +26,7 @@ export default async function AdminHome({
           <ul>
             {items.map((i) => (
               <li key={i.key}>
-                {i.done ? "&check;" : "&#9744"} {i.label}
+                {i.done ? "✓" : "☐"} {i.label}
               </li>
             ))}
           </ul>
@@ -35,5 +36,21 @@ export default async function AdminHome({
         Switch business
       </Link>
     </main>
+  );
+}
+
+export default function AdminHome({
+  params,
+}: {
+  params: Promise<{ businessId: string }>;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-sm text-neutral-500">Loading admin...</div>
+      }
+    >
+      <AdminHomeContent params={params} />
+    </Suspense>
   );
 }
