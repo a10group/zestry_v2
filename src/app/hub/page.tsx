@@ -80,22 +80,11 @@ async function HubContent({
   );
 }
 
-export default async function HubPage({
+export default function HubPage({
   searchParams,
 }: {
   searchParams: Promise<{ all?: string }>;
 }) {
-  const { user, memberships } = await getAuthContext();
-  const { all } = await searchParams;
-
-  if (
-    memberships.length === 1 &&
-    memberships[0].business.status === "ACTIVE" &&
-    !all
-  ) {
-    redirect(`/b/${memberships[0].business.id}`);
-  }
-
   return (
     <Suspense
       fallback={
