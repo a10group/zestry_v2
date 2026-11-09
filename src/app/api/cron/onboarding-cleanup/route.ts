@@ -4,8 +4,6 @@ import {
   purgedEmptyArchived,
 } from "@/modules/businesses/onboarding-cleaup";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
 
