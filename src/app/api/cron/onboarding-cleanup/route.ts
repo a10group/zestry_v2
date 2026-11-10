@@ -11,7 +11,7 @@ export async function GET(req: Request) {
     return new NextResponse("Unauthorized Access Denied!", { status: 401 });
   }
 
-  const archived = archiveStaleOnboarding();
+  const archived = await archiveStaleOnboarding();
   const purged = await purgedEmptyArchived();
   return NextResponse.json({ archived, purged });
 }

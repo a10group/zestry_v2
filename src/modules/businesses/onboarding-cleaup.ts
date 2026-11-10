@@ -50,4 +50,5 @@ export async function purgedEmptyArchived() {
       console.error("purge failed for business", id, e);
     }
   }
+  return purged;
 }
