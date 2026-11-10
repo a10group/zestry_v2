@@ -67,10 +67,10 @@ export default function Navbar() {
           {/* Desktop Auth & CTA */}
           <div className="hidden md:flex items-center gap-6">
             <Link
-              href="/login"
+              href="/sign-in"
               className="text-sm font-medium hover:text-[#84cc16] transition-colors"
             >
-              Log In
+              Sign In
             </Link>
             <Link
               href="/book-a-call"
