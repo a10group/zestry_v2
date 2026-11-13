@@ -39,7 +39,12 @@ export async function createBusinessAction(
     };
   }
 
-  const business = await createBusinessWithOwner(user, parsed.data);
+  const displayName =
+    [user.firstName, user.lastName].filter(Boolean).join(" ") || "Unnamed";
+  const business = await createBusinessWithOwner(
+    { id: user.id, displayName },
+    parsed.data,
+  );
   redirect(`/onboarding/${business.id}`);
 }
 

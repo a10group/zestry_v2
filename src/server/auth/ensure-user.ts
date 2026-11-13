@@ -13,7 +13,6 @@ export async function ensureUser(p: ExternalProfile) {
   const existing = await findUserBySubject(p.provider, p.subject);
   if (existing) return existing;
 
-  const name = [p.firstName, p.lastName].filter(Boolean).join(" ") || "Unnamed";
   try {
     return await db.user.create({
       data: {
@@ -23,10 +22,6 @@ export async function ensureUser(p: ExternalProfile) {
         phone: p.phone,
         contactPhone: p.contactPhone,
         email: p.email,
-
-        // LEGACY columns
-        name,
-        clerkId: p.subject,
         externalIdentities: {
           create: {
             provider: p.provider,

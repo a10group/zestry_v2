@@ -22,8 +22,6 @@ export async function purgedEmptyArchived() {
     where: {
       status: "ARCHIVED",
       archivedAt: { lt: daysAgo(PURGE_AFTER_DAYS) },
-      // LEGACY
-      users: { none: {} },
       products: { none: {} },
       customers: { none: {} },
       sales: { none: {} },

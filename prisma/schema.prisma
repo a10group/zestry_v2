@@ -134,16 +134,13 @@ model Business {
   taxRate      Decimal @default(0) @db.Decimal(5, 2)
   taxInclusive Boolean @default(true)
 
-  businessType String?
+  vertical Vertical
 
-  vertical Vertical @default(RETAIL)
-
-  status                BusinessStatus  @default(ACTIVE)
+  status                BusinessStatus
   onboardingStep        OnboardingStep? // null once onboarding is complete
   onboardingCompletedAt DateTime?
   archivedAt            DateTime?
 
-  // Onboarding step 1 fields.
   country  String? // ISO 3166-1 alpha-2, for example "SL"
   timeZone String? // IANA name, for example "Africa/Freetown"
   address  String?
@@ -160,7 +157,6 @@ model Business {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users             User[]
   products          Product[]
   customers         Customer[]
   sales             Sale[]
@@ -212,16 +208,6 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // LEGACY. Replaced by ExternalIdentity, Membership and RoleAssignment.
-  // Dropped in the contract release. Keep writing them (where representable)
-  // until then, for rollback safety only.
-  name       String // replaced by firstName / lastName
-  clerkId    String    @unique
-  businessId String?
-  business   Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  role       Role      @default(CASHIER)
-  isActive   Boolean   @default(true)
-
   salesAsCashier   Sale[]          @relation("SaleCashier")
   stockMovements   StockMovement[] @relation("StockMovementCreatedBy")
   expensesRecorded Expense[]       @relation("ExpenseCreatedBy")
@@ -229,7 +215,6 @@ model User {
   externalIdentities ExternalIdentity[]
   memberships        Membership[]
 
-  @@index([businessId])
   @@map("users")
 }
 

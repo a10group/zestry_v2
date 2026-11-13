@@ -6,8 +6,6 @@ export async function syncUser(p: ExternalProfile) {
   const user = await findUserBySubject(p.provider, p.subject);
   if (!user) return ensureUser(p); // webhook arrives before our just in time fallback
 
-  const name = [p.firstName, p.lastName].filter(Boolean).join(" ") || user.name;
-
   try {
     return await db.user.update({
       where: { id: user.id },
@@ -16,7 +14,6 @@ export async function syncUser(p: ExternalProfile) {
         lastName: p.lastName,
         email: p.email,
         phone: p.phone,
-        name,
       },
     });
   } catch (e) {
@@ -43,7 +40,7 @@ export async function deactivateUserSubject(subject: string) {
     db.user.update({
       where: { id: user.id },
       // Release the unique contact values so the person can sign up again later
-      data: { email: null, phone: null, contactPhone: null, isActive: false },
+      data: { email: null, phone: null, contactPhone: null },
     }),
   ]);
 }

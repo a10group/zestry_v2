@@ -3,7 +3,7 @@ import { db } from "@/server/db";
 import { toE164 } from "@/lib/phone";
 
 export async function createBusinessWithOwner(
-  user: { id: string; name: string },
+  user: { id: string; displayName: string },
   d: BusinessInfo,
 ) {
   return db.$transaction(async (tx) => {
@@ -42,7 +42,7 @@ export async function createBusinessWithOwner(
         userId: user.id,
         businessId: business.id,
         status: "ACTIVE",
-        displayName: user.name,
+        displayName: user.displayName,
       },
       select: { id: true },
     });
