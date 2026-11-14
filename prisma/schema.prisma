@@ -167,6 +167,7 @@ model Business {
   notifications     Notification[]
   invites           TeamInvite[]
   subscriptions     Subscription[]
+  productCategories ProductCategory[]
 
   sites           Site[]
   memberships     Membership[]
@@ -237,20 +238,23 @@ model TeamInvite {
 // ---------------------------------------------------------------------------
 
 model Product {
-  id                String   @id @default(cuid())
+  id                String           @id @default(cuid())
   businessId        String
-  business          Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  business          Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
   name              String
   sku               String?
   category          String?
+  categoryId        String?
+  productCategory   ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  trackStock        Boolean          @default(true)
   imageUrl          String?
-  price             Decimal  @db.Decimal(12, 2)
-  cost              Decimal? @db.Decimal(12, 2)
-  currentStock      Int      @default(0) // cached aggregate
-  lowStockThreshold Int      @default(5)
-  isActive          Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  price             Decimal          @db.Decimal(12, 2)
+  cost              Decimal?         @db.Decimal(12, 2)
+  currentStock      Int              @default(0) // cached aggregate
+  lowStockThreshold Int              @default(5)
+  isActive          Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   variants       ProductVariant[]
   stockMovements StockMovement[]
@@ -259,7 +263,24 @@ model Product {
 
   @@index([businessId])
   @@index([businessId, sku])
+  @@index([businessId, categoryId])
   @@map("products")
+}
+
+model ProductCategory {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name       String
+  sortOrder  Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  products Product[]
+
+  @@unique([businessId, name])
+  @@map("product_categories")
 }
 
 model ProductVariant {

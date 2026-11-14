@@ -32,6 +32,12 @@ async function AdminHomeContent({
           </ul>
         </section>
       )}
+      <Link
+        href={`/b/${business.id}/admin/products`}
+        className="block rounded-lg border p-3 text-sm"
+      >
+        {business.vertical === "RESTAURANT" ? "Menu" : "Products"}
+      </Link>
       <Link href="/hub?all=1" className="text-sm underline">
         Switch business
       </Link>
